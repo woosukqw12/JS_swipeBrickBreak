@@ -37,7 +37,14 @@ function randint(min, max) {
 
 // stage
 var stage = 1;
-
+stageDict = [
+    "",
+    "#d499d4",
+    "#6f0c4f",
+    "#e85255",
+    "#e3272b",
+    "#7f0909"
+]
 
 
 // - paddle part
@@ -78,22 +85,22 @@ var bricks = [];
 for (let c = 0; c < brickColumnCount; c++) {
     bricks[c] = [];
     for (let r = 0; r < brickRowCount; r++) {
-        bricks[c][r] = { x: 0, y: 0, status: 1 };
+        bricks[c][r] = { x: 0, y: 0, status: stage };
     }
 }
 
 function drawBricks() {
     for (let c = 0; c < brickColumnCount; c++) {
         for (let r = 0; r < brickRowCount; r++) {
-            if ( bricks[c][r].status == 1 ) {
+            if ( bricks[c][r].status > 0) {
                 var brickX = c * (brickWidth + brickPadding) + brickOffsetLeft;
                 var brickY = r * (brickHeight + brickPadding) + brickOffsetTop;
-
+                
                 bricks[c][r].x = brickX;
                 bricks[c][r].y = brickY;
                 ctx.beginPath();
                 ctx.rect(brickX, brickY, brickWidth, brickHeight);
-                ctx.fillStyle = "#0095DD";
+                ctx.fillStyle = stageDict[bricks[c][r].status];
                 ctx.fill();
                 ctx.closePath();
                }
@@ -107,13 +114,31 @@ function collisionDetection() {
     for (let c=0; c < brickColumnCount; c++) {
         for (let r=0; r < brickRowCount; r++) {
             var b = bricks[c][r];
-            if ( b.status==1 && x>b.x && x < b.x+brickWidth && y > b.y && y < b.y+brickHeight) {
+            if ( b.status > 0 && x>b.x && x < b.x+brickWidth && y > b.y && y < b.y+brickHeight) {
+                bricks[c][r].status--;
                 dy = -dy;
-                b.status = 0;
+                //b.status = 0;
                 score++;
-                if (score == brickRowCount * brickColumnCount) {
-                    alert("WIN!");
-                    document.location.reload();
+                if (score == brickRowCount * brickColumnCount*stage) {
+                    if (stage==5) {
+                        alert("WIN!");
+                        document.location.reload();
+                    }
+                    stage++;
+                    //bricks[:][:].status = stage;
+                    for (let c1 = 0; c1 < brickColumnCount; c1++) {
+                        for (let r1 = 0; r1 < brickRowCount; r1++) {
+                                bricks[c1][r1].status = stage;
+                            }
+                        }
+                    drawBricks();
+                    x = canvas.width / 2 + randint(-10, 10);     
+                    y = canvas.height -30 + randint(-60, 10);
+                    dx = 2 + stage;
+                    dy = -2 - stage;
+                    paddleX = (canvas.width - paddleWidth) / 2;
+                    //alert("WIN!");
+                    //document.location.reload();
                  }
             }
         }
@@ -121,7 +146,7 @@ function collisionDetection() {
 }
 
 // scoring
-var score = 0;
+var score = 11;
 function drawScore() {
     ctx.font = "16px Arial";
     ctx.fillStyle = "#0095DD";
@@ -129,7 +154,11 @@ function drawScore() {
 }
 // ---
 
-
+function drawStage() {
+    ctx.font = "16px Arial";
+    ctx.fillStyle = "#0095DD";
+    ctx.fillText('Stage:' + stage, 85, 20);
+}
 //life
 let lives = 3;
 function drawLives() {
@@ -164,6 +193,7 @@ function draw() {
     drawBricks();
     drawScore();
     drawLives();
+    drawStage();
 
     // ball drawing
     if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
@@ -178,7 +208,7 @@ function draw() {
         }
         else {
             lives--;
-            score--;
+            //score--;
             if (!lives) {
                 alert("GAME OVER");
                 document.location.reload();
@@ -187,8 +217,8 @@ function draw() {
             else {
                 x = canvas.width / 2 + randint(-10, 10);     
                 y = canvas.height -30 + randint(-60, 10);
-                dx = 2;
-                dy = -2;
+                dx = 2 + stage;
+                dy = -2 - stage;
                 paddleX = (canvas.width - paddleWidth) / 2;
             }
         }
